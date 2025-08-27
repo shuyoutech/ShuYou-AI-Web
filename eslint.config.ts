@@ -1,22 +1,44 @@
-import { globalIgnores } from 'eslint/config'
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
-import pluginVue from 'eslint-plugin-vue'
-import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
+import antfu from '@antfu/eslint-config'
+import vueI18n from '@intlify/eslint-plugin-vue-i18n'
 
-// To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
-// import { configureVueProject } from '@vue/eslint-config-typescript'
-// configureVueProject({ scriptLangs: ['ts', 'tsx'] })
-// More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
-
-export default defineConfigWithVueTs(
+export default antfu(
   {
-    name: 'app/files-to-lint',
-    files: ['**/*.{ts,mts,tsx,vue}'],
+    unocss: true,
+    ignores: [
+      'public',
+      'dist*',
+    ],
   },
-
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
-
-  pluginVue.configs['flat/essential'],
-  vueTsConfigs.recommended,
-  skipFormatting,
+  {
+    rules: {
+      'eslint-comments/no-unlimited-disable': 'off',
+      'curly': ['error', 'all'],
+      'ts/no-unused-expressions': ['error', {
+        allowShortCircuit: true,
+        allowTernary: true,
+      }],
+    },
+  },
+  {
+    files: [
+      'src/**/*.vue',
+    ],
+    rules: {
+      'vue/block-order': ['error', {
+        order: ['route', 'i18n', 'script', 'template', 'style'],
+      }],
+    },
+  },
+  ...vueI18n.configs['flat/recommended'],
+  {
+    rules: {
+      '@intlify/vue-i18n/no-raw-text': 'off',
+    },
+    settings: {
+      'vue-i18n': {
+        localeDir: './src/locales/lang/*.{json,json5,yaml,yml}',
+        messageSyntaxVersion: '^10.0.0',
+      },
+    },
+  },
 )

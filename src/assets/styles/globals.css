@@ -1,0 +1,101 @@
+/* 页面布局 CSS 变量 */
+:root {
+  color-scheme: light;
+
+  /* 仅页宽模式为 center 时生效，会跟随页宽模式作用范围而变化 */
+  --g-app-width: 1400px;
+
+  /* 头部宽度（默认自适应宽度，可固定宽度，固定宽度后为居中显示） */
+  --g-header-width: 100%;
+
+  /* 头部高度 */
+  --g-header-height: 60px;
+
+  /* 侧边栏宽度 */
+  --g-main-sidebar-width: 80px;
+  --g-sub-sidebar-width: 220px;
+  --g-sub-sidebar-collapse-width: 64px;
+
+  /* 侧边栏 Logo 区域高度 */
+  --g-sidebar-logo-height: 50px;
+
+  /* 标签栏高度 */
+  --g-tabbar-height: 50px;
+
+  /* 工具栏高度 */
+  --g-toolbar-height: 50px;
+
+  /* 标签页最大最小宽度，两个宽度为同一数值时，则为固定宽度，反之将宽度设置为 unset 则为自适应 */
+  --g-tabbar-tab-max-width: 150px;
+  --g-tabbar-tab-min-width: 150px;
+
+  /* 滚动条颜色 */
+  --scrollbar-color: 240 5.9% 90%;
+
+  &.dark {
+    color-scheme: dark;
+
+    --scrollbar-color: 240 3.7% 15.9%;
+  }
+}
+
+/* 明暗模式过渡动画 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation: none;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+.dark {
+  &::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  &::view-transition-new(root) {
+    z-index: 0;
+  }
+}
+
+* {
+  scrollbar-color: hsl(var(--scrollbar-color)) transparent;
+  scrollbar-width: thin;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  box-sizing: border-box;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  height: 100%;
+}
+
+/* textarea 字体跟随系统 */
+textarea {
+  font-family: inherit;
+}
+
+/* 拖拽布局时禁用 transition 动效 */
+.layout-dragging * {
+  transition: none !important;
+}
+
+/* medium-zoom */
+.medium-zoom-overlay,
+.medium-zoom-image {
+  z-index: 3000;
+}
