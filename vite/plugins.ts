@@ -1,25 +1,22 @@
-import type {PluginOption} from 'vite'
+import type { PluginOption } from 'vite'
 import path from 'node:path'
 import process from 'node:process'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vueLegacy from '@vitejs/plugin-legacy'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
-import boxen from 'boxen'
-import picocolors from 'picocolors'
 import Unocss from 'unocss/vite'
 import autoImport from 'unplugin-auto-import/vite'
 import TurboConsole from 'unplugin-turbo-console/vite'
 import components from 'unplugin-vue-components/vite'
-import {loadEnv} from 'vite'
-import AppLoading from 'vite-plugin-app-loading'
+import { loadEnv } from 'vite'
 import Archiver from 'vite-plugin-archiver'
 import banner from 'vite-plugin-banner'
-import {compression} from 'vite-plugin-compression2'
-import {envParse, parseLoadedEnv} from 'vite-plugin-env-parse'
-import {vitePluginFakeServer} from 'vite-plugin-fake-server'
+import { compression } from 'vite-plugin-compression2'
+import { envParse, parseLoadedEnv } from 'vite-plugin-env-parse'
+import { vitePluginFakeServer } from 'vite-plugin-fake-server'
 import Pages from 'vite-plugin-pages'
-import {createSvgIconsPlugin} from 'vite-plugin-svg-icons'
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import Layouts from 'vite-plugin-vue-meta-layouts'
 
@@ -56,8 +53,13 @@ export default function createVitePlugins(mode: string, isBuild = false) {
       ],
       dts: './src/types/auto-imports.d.ts',
       dirs: [
-        './src/store/modules',
-        './src/utils/composables',
+        './src/store/modules/**/*',
+        './src/composables/**/*',
+        './src/ui/components/FaDrawer/index.ts',
+        './src/ui/components/FaModal/index.ts',
+        './src/ui/components/FaLoading/index.ts',
+        './src/ui/components/FaToast/index.ts',
+        './src/ui/components/FaNotification/index.ts',
       ],
     }),
 
@@ -95,6 +97,7 @@ export default function createVitePlugins(mode: string, isBuild = false) {
     // https://github.com/dishait/vite-plugin-vue-meta-layouts
     Layouts({
       defaultLayout: 'index',
+      metaName: 'layouts',
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
@@ -118,85 +121,12 @@ export default function createVitePlugins(mode: string, isBuild = false) {
       archiveType: viteEnv.VITE_BUILD_ARCHIVE,
     }),
 
-    AppLoading('loading.html'),
-
     // https://github.com/unplugin/unplugin-turbo-console
     TurboConsole(),
 
     // https://github.com/chengpeiquan/vite-plugin-banner
-    banner(`
-/**
- * 由 Fantastic-admin 提供技术支持
- * Powered by Fantastic-admin
- * https://fantastic-admin.hurui.me
- */
-    `),
+    banner(` https://ai.shuyoutech.com `),
 
-    {
-      name: 'vite-plugin-debug-plugin',
-      enforce: 'pre',
-      transform: (code, id) => {
-        if (/src\/main.ts$/.test(id)) {
-          if (viteEnv.VITE_APP_DEBUG_TOOL === 'eruda') {
-            code = code.concat(`
-              import eruda from 'eruda'
-              eruda.init()
-            `)
-          } else if (viteEnv.VITE_APP_DEBUG_TOOL === 'vconsole') {
-            code = code.concat(`
-              import VConsole from 'vconsole'
-              new VConsole()
-            `)
-          }
-          return {
-            code,
-            map: null,
-          }
-        }
-      },
-    },
-
-    {
-      name: 'vite-plugin-disable-devtool',
-      enforce: 'pre',
-      transform: (code, id) => {
-        if (/src\/main.ts$/.test(id)) {
-          if (viteEnv.VITE_APP_DISABLE_DEVTOOL) {
-            // ?ddtk=example
-            code = code.concat(`
-              import DisableDevtool from 'disable-devtool'
-              DisableDevtool({
-                md5: '1a79a4d60de6718e8e5b326e338ae533',
-              })
-            `)
-          }
-          return {
-            code,
-            map: null,
-          }
-        }
-      },
-    },
-
-    {
-      name: 'vite-plugin-terminal-info',
-      apply: 'serve',
-      async buildStart() {
-        const {bold, green, magenta, bgGreen, underline} = picocolors
-        // eslint-disable-next-line no-console
-        console.log(
-          boxen(
-            `${bold(green(`由 ${bgGreen('Fantastic-admin')} 驱动`))}\n\n${underline('https://fantastic-admin.hurui.me')}\n\n当前使用：${magenta('专业版')}`,
-            {
-              padding: 1,
-              margin: 1,
-              borderStyle: 'double',
-              textAlignment: 'center',
-            },
-          ),
-        )
-      },
-    },
   ]
   return vitePlugins
 }

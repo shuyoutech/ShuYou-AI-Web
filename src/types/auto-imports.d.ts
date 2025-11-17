@@ -79,7 +79,7 @@ declare global {
   const useAppPage: typeof import('../composables/app/page')['useAppPage']
   const useAppPreferencesStore: typeof import('../store/modules/app/preferences')['useAppPreferencesStore']
   const useAppRouteStore: typeof import('../store/modules/app/route')['useAppRouteStore']
-  const useAppSettingsStore: typeof import('../store/modules/app/settings')['useAppSettingsStore']
+  const useAppSettingsStore: typeof import('../store/modules/settings')['useAppSettingsStore']
   const useAppTabbar: typeof import('../composables/app/tabbar')['useAppTabbar']
   const useAppTabbarStore: typeof import('../store/modules/app/tabbar')['useAppTabbarStore']
   const useAppWatermarkStore: typeof import('../store/modules/app/watermark')['useAppWatermarkStore']
@@ -100,6 +100,7 @@ declare global {
   const usePagination: typeof import('../composables/pagination')['usePagination']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']
+  const useShareStore: typeof import('../store/modules/share')['useShareStore']
   const useSlots: typeof import('vue')['useSlots']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
   const useUserStore: typeof import('../store/modules/user')['useUserStore']
@@ -113,9 +114,6 @@ declare global {
   // @ts-ignore
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
-  // @ts-ignore
-  export type { DictionaryItem } from '../store/modules/dictionary'
-  import('../store/modules/dictionary')
   // @ts-ignore
   export type { DrawerProps, DrawerEmits } from '../ui/components/FaDrawer/index'
   import('../ui/components/FaDrawer/index')

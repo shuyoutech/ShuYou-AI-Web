@@ -1,0 +1,256 @@
+{
+  "app": {
+    "route": {
+      "undefined": "[ No title ]",
+      "reload": "Reloading...",
+      "home": "Home",
+      "login": "Login"
+    }
+  },
+  "route": {
+    "demo": "Demo",
+    "page": "Page",
+    "ecology": "Ecology",
+    "multimenu": {
+      "root": "Multi-level navigation",
+      "page": "Navigation 1",
+      "level2": {
+        "root": "Navigation 2",
+        "page": "Navigation 2-1",
+        "level3": {
+          "root": "Navigation 3",
+          "page1": "Navigation 2-2-1",
+          "page2": "Navigation 2-2-2"
+        }
+      }
+    },
+    "breadcrumb": {
+      "root": "Breadcrumb",
+      "list1": "List 1 (flat mode)",
+      "detail1": "Detail 1",
+      "list2": "List 2 (nested mode)",
+      "detail2": "Detail 2"
+    },
+    "layoutCenter": {
+      "root": "Layout center",
+      "inner": "Inner center",
+      "outer": "Outer center"
+    },
+    "keepAlive": {
+      "root": "Keep Alive",
+      "page": "Page cache",
+      "detail": "Flat route",
+      "nested": "Nested route",
+      "nested1": {
+        "root": "Nested route cache 1",
+        "nested2": {
+          "root": "Nested route cache 1-1",
+          "index": "Nested route cache 1-1-1"
+        }
+      }
+    },
+    "alwaysExpand": {
+      "root": "Always opened",
+      "page": "Navigation 1",
+      "level2": {
+        "root": "Navigation 2",
+        "page": "Navigation 2-1",
+        "level3": {
+          "root": "Navigation 3",
+          "page1": "Navigation 2-2-1",
+          "page2": "Navigation 2-2-2"
+        }
+      }
+    },
+    "menuIcon": {
+      "root": "Menu icon actived",
+      "child": "Child level menu icon actived",
+      "parent": {
+        "root": "Parent level menu icon actived",
+        "index": "Test page"
+      }
+    },
+    "menuBadge": {
+      "root": "Dynamic menu badge",
+      "dot": "Dot badge",
+      "number": "Number badge",
+      "text": "Text badge",
+      "variant": "Badge variant"
+    },
+    "menuQuery": "Navigation with query",
+    "tabbar": {
+      "root": "Tabbar",
+      "api": "API",
+      "merge": "Tab merge",
+      "routeName": "Route name",
+      "activeMenu": "Active menu",
+      "detail": "Detail"
+    },
+    "component": {
+      "root": "Component",
+      "basic": "Basic components",
+      "builtIn": {
+        "root": "Built-in component",
+        "animatedbeam": "Animated beam",
+        "animatedcountto": "Animated count to",
+        "avatar": "Avatar",
+        "badge": "Badge",
+        "blurreveal": "Blur reveal",
+        "borderbeam": "Border beam",
+        "button": "Button",
+        "card": "Card",
+        "carousel": "Carousel",
+        "checkbox": "Checkbox",
+        "code": "Code",
+        "collapsible": "Collapsible",
+        "contextmenu": "Context menu",
+        "countto": "Count to",
+        "digitalcard": "Digital card",
+        "divider": "Divider",
+        "drawer": "Drawer",
+        "dropdown": "Dropdown",
+        "fileupload": "File upload",
+        "fixedbar": "Fixed bar",
+        "flipcard": "Flip card",
+        "flipwords": "Flip words",
+        "glowycard": "Glowy card",
+        "gradientbutton": "Gradient button",
+        "hovercard": "Hover card",
+        "iconpicker": "Icon picker",
+        "imagepreview": "Image preview",
+        "imageupload": "Image upload",
+        "input": "Input",
+        "interactivebutton": "Interactive button",
+        "kbd": "Keyboard",
+        "linkpreview": "Link preview",
+        "loading": "Loading",
+        "marquee": "Marquee",
+        "modal": "Modal",
+        "multisteploader": "Multi-step loader",
+        "notification": "Notification",
+        "pageheader": "Page header",
+        "pagemain": "Page main",
+        "pagination": "Pagination",
+        "particlesbg": "Particles background",
+        "passwordstrength": "Password strength",
+        "patternbg": "Pattern background",
+        "pininput": "Pin input",
+        "popover": "Popover",
+        "progress": "Progress",
+        "scratchoff": "Scratch off",
+        "scrollarea": "Scroll area",
+        "searchbar": "Search bar",
+        "select": "Select",
+        "slider": "Slider",
+        "smoothswipe": "Smooth swipe",
+        "sparklestext": "Sparkle text",
+        "sparkline": "Sparkline",
+        "spotlightcard": "Spotlight card",
+        "storagebox": "Storage box",
+        "switch": "Switch",
+        "tabs": "Tabs",
+        "texthighlight": "Text highlight",
+        "textarea": "Textarea",
+        "timeago": "Time ago",
+        "timeline": "Timeline",
+        "toast": "Toast",
+        "tooltip": "Tooltip",
+        "tree": "Tree",
+        "trend": "Trend"
+      },
+      "extend": {
+        "root": "Extend components",
+        "pcas": "Pcas Cascader"
+      }
+    },
+    "icon": "Extend icons",
+    "layout": {
+      "container": "Layout container"
+    },
+    "feature": {
+      "root": "Feature",
+      "i18n": "I18N",
+      "font": "Custom Font",
+      "waves": "Waves",
+      "zoomable": "Zoomable",
+      "watermark": "Watermark",
+      "bug": "Bug Log",
+      "title": "Dynamic Title",
+      "maximize": "Page maximization",
+      "newwindow": "Open in new window",
+      "login-expired": "Login expired",
+      "confetti": "Confetti",
+      "rules": "RegExp",
+      "tableautoheight": "Table autoheight",
+      "reload": "Page reload",
+      "menuswitch": "Menu swtich",
+      "leavetips": "Page leaving reminder",
+      "scroll": "Record scroll position"
+    },
+    "chart": "Chart",
+    "permission": "Permission validation",
+    "standardModule": {
+      "root": "Standard module",
+      "list": "List",
+      "create": "Create",
+      "edit": "Edit"
+    },
+    "general": {
+      "root": "General",
+      "menu": {
+        "root": "Menu",
+        "list": "Menu list",
+        "create": "Create menu",
+        "edit": "Edit menu"
+      },
+      "manager": {
+        "root": "Manager",
+        "list": "Manager list",
+        "create": "Create manager",
+        "edit": "Edit manager"
+      },
+      "department": {
+        "root": "Department",
+        "list": "Department list",
+        "create": "Create department",
+        "edit": "Edit department",
+        "job": {
+          "root": "Job",
+          "list": "Job list",
+          "create": "Create job",
+          "edit": "Edit job"
+        }
+      },
+      "role": {
+        "root": "Role",
+        "list": "Role list",
+        "create": "Create role",
+        "edit": "Edit role"
+      },
+      "dictionary": "Dictionary",
+      "table": "Table"
+    },
+    "form": {
+      "root": "Form",
+      "basic": "Basic form",
+      "advanced": "Advanced form",
+      "step": "Step form"
+    },
+    "list": {
+      "root": "List",
+      "basic": "Basic list",
+      "card": "Card list",
+      "goods": "Goods list",
+      "sidelayout": "Left-side list"
+    },
+    "shop": {
+      "root": "Shop",
+      "delivery": {
+        "root": "Delivery template",
+        "list": "Delivery template list",
+        "create": "Create delivery template",
+        "edit": "Edit delivery template"
+      }
+    }
+  }
+}

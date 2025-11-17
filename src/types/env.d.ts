@@ -13,6 +13,7 @@ interface ImportMetaEnv {
    */
   readonly VITE_APP_API_BASEURL: string
   /**
+   * VITE_APP_API_BASEURL = http://localhost:9011
    * localStorage/sessionStorage 前缀
    */
   readonly VITE_APP_STORAGE_PREFIX: string

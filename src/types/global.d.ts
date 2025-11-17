@@ -7,7 +7,7 @@ type RecursiveRequired<T> = {
 type RecursivePartial<T> = {
   [K in keyof T]?: T[K] extends object | undefined ? RecursivePartial<T[K]> : T[K]
 }
-type preferencesBoolean<T> = {
+type PreferencesBoolean<T> = {
   [K in keyof T]?: boolean
 }
 
@@ -198,7 +198,7 @@ declare namespace Settings {
      * @description 用户偏好设置，可以控制各个功能模块的启用状态
      */
     preferences?: {
-      [K in Exclude<keyof Settings.all, 'app'>]?: boolean | preferencesBoolean<Settings.all[K]>
+      [K in Exclude<keyof Settings.all, 'app'>]?: boolean | PreferencesBoolean<Settings.all[K]>
     }
   }
 
@@ -1019,64 +1019,220 @@ declare namespace SettingsLegacy {
   }
 }
 
-declare module 'vue-router' {
-  interface RouteMeta {
-    auths?: {
-      name: string
-      value: string
-    }[]
-    auth?: string | string[]
-    singleMenu?: boolean
-    title?: string | (() => string)
-    query?: Record<string, T>
-    icon?: string | [string, string]
-    menu?: boolean
-    activeMenu?: string
-    expand?: boolean | [boolean, boolean]
-    badge?:
-      boolean | string | number | (() => boolean | string | number)
-      | [
-        boolean | string | number | (() => boolean | string | number),
-        'default' | 'secondary' | 'destructive' | (() => 'default' | 'secondary' | 'destructive'),
-      ]
-    sort?: number
-    breadcrumb?: boolean
-    tabPermanent?: boolean
-    tabMerge?: 'routeName' | 'activeMenu'
-    cache?: boolean | string | string[]
-    noCache?: string | string[]
-    maximize?: boolean | [boolean, boolean]
-    newWindow?: boolean
-    iframe?: string | boolean
-    link?: string
-    layout?: {
-      center?: boolean
-      centerScope?: 'inner' | 'outer'
-      centerWidth?: number
-    }
-    copyright?: boolean
-    whiteList?: boolean
+interface RouteMetaRaw {
+  /**
+   * 权限池
+   * @description 对路由本身无实际作用，通常用于角色管理模块，展示路由可配置权限
+   * @default undefined
+   * @example
+   * [
+   *   { name: '新闻管理(浏览)', value: 'news:view' },
+   *   { name: '新闻管理(编辑)', value: 'news:edit' }
+   * ]
+   */
+  auths?: {
+    name: string
+    value: string
+  }[]
+  /**
+   * 权限
+   * @description 路由访问权限，配置为数组时，只需满足一个即可进入
+   * @default undefined
+   * @example
+   * 'news:view' - 访问该路由时，需要具备 news:view 权限
+   * ['news:view', 'news:edit'] - 访问该路由时，需要具备 news:view 或 news:edit 权限
+   */
+  auth?: string | string[]
+  /**
+   * 是否为单个一级导航
+   * @description 该配置用于简化只想展示一级，没有二级导航的路由配置。
+   * @default false
+   */
+  singleMenu?: boolean
+  /**
+   * 标题
+   * @description 标题会在导航、标签页、面包屑等需要的展示位置显示
+   * @default undefined
+   * @example
+   * '新闻管理' - 标题为新闻管理
+   */
+  title?: string | (() => string)
+  /**
+   * 路由 query 参数
+   * @description 点击导航时进行路由跳转时，携带的参数
+   * @default undefined
+   * @example
+   * { id: 1, name: 'test' } - 点击导航时，携带 id 参数为 1，name 参数为 test
+   */
+  query?: Record<string, T>
+  /**
+   * 图标
+   * @description 如果配置为数组，则第一个为默认图标，第二个为激活图标
+   * @default undefined
+   * @example
+   * 'i-ep:lock' - 默认显示 i-ep:lock 图标
+   * ['i-ep:lock', 'i-ep:unlock'] - 默认显示 i-ep:lock 图标，激活时显示 i-ep:unlock 图标
+   */
+  icon?: string | [string, string]
+  /**
+   * 是否在导航中显示
+   * @description 当子导航里没有可展示的导航时，会直接显示父导航
+   * @default true
+   */
+  menu?: boolean
+  /**
+   * 高亮导航
+   * @description 需要设置完整路由地址
+   * @default undefined
+   * @example '/news/list'
+   */
+  activeMenu?: string
+  /**
+   * 是否默认展开
+   * @description 如果配置为数组，则第一个为默认展开状态，第二个是否始终展开
+   * @default undefined
+   * @example
+   * true - 默认展开
+   * [true, true] - 默认展开，且不允许收起
+   */
+  expand?: boolean | [boolean, boolean]
+  /**
+   * 徽章
+   * @description 如果配置为数组，则第一个为徽章内容，第二个为徽章颜色
+   * @default undefined
+   * @example
+   * 'PRO' - 显示徽章，内容为 PRO
+   * [true, 'destructive'] - 显示徽章，内容为圆点，颜色为 'destructive'
+   */
+  badge?:
+    boolean | string | number | (() => boolean | string | number)
+    | [
+      boolean | string | number | (() => boolean | string | number),
+      'default' | 'secondary' | 'destructive' | (() => 'default' | 'secondary' | 'destructive'),
+    ]
+  /**
+   * 导航排序
+   * @description 数字越大越靠前
+   * @default 0
+   */
+  sort?: number
+  /**
+   * 是否在面包屑中显示
+   * @description 是否在面包屑导航中显示
+   * @default true
+   */
+  breadcrumb?: boolean
+  /**
+   * 是否常驻标签页
+   * @description 请勿在带有参数的路由上设置该特性
+   * @default false
+   */
+  tabPermanent?: boolean
+  /**
+   * 标签页合并
+   * @description 根据规则合并标签页
+   * @default undefined
+   * @example
+   * 'routeName' - 根据路由名称合并
+   * 'activeMenu' - 根据 activeMenu 属性合并
+   */
+  tabMerge?: 'routeName' | 'activeMenu'
+  /**
+   * 缓存
+   * @description 根据规则缓存当前路由页面
+   * @default undefined
+   * @example
+   * true - 始终缓存
+   * 'news' - 访问路由name为news的页面时缓存
+   * ['news', 'user'] - 访问路由name为news或user的页面时缓存
+   */
+  cache?: boolean | string | string[]
+  /**
+   * 不缓存
+   * @description 根据规则不缓存当前路由页面
+   * @default undefined
+   * @example
+   * 'news' - 访问路由name为news的页面时不缓存
+   * ['news', 'user'] - 访问路由name为news或user的页面时不缓存
+   */
+  noCache?: string | string[]
+  /**
+   * 最大化
+   * @description 如果配置为数组，则第一个为是否开启最大化，第二个为是否允许手动退出最大化
+   * @default undefined
+   * @example
+   * true - 开启最大化
+   * [true, false] - 开启最大化，允许手动退出最大化
+   * [true, true] - 开启最大化，不允许手动退出最大化
+   */
+  maximize?: boolean | [boolean, boolean]
+  /**
+   * 新窗口
+   * @description 是否在新窗口打开
+   * @default false
+   */
+  newWindow?: boolean
+  /**
+   * iframe
+   * @description 是否在iframe中打开
+   * @default undefined
+   * @example
+   * 'https://fantastic-admin.hurui.me' - 在iframe中打开 Fantastic-admin 官网
+   * true - 获取路由query中的iframe属性，并在iframe中打开
+   */
+  iframe?: string | boolean
+  /**
+   * 外部链接
+   * @description 会在浏览器新窗口访问该链接
+   * @default undefined
+   * @example
+   * 'https://fantastic-admin.hurui.me' - 在浏览器新窗口打开 Fantastic-admin 官网
+   */
+  link?: string
+  /**
+   * 布局
+   */
+  layout?: {
+    /**
+     * 是否居中
+     * @description 如果不设置，则使用全局配置
+     * @default undefined
+     */
+    center?: boolean
+    /**
+     * 作用范围
+     * @description 如果不设置，则使用全局配置
+     * @default undefined
+     */
+    centerScope?: 'inner' | 'outer'
+    /**
+     * 宽度
+     * @description 如果不设置，则使用全局配置
+     * @default undefined
+     */
+    centerWidth?: number
   }
+  /**
+   * 是否显示版权
+   * @description 如果不设置，则使用全局配置
+   * @default undefined
+   */
+  copyright?: boolean
+  /**
+   * 免登白名单
+   * @description 开启后无需登录即可访问，仅支持在固定路由上生效
+   * @default false
+   */
+  whiteList?: boolean
+}
+
+declare module 'vue-router' {
+  interface RouteMeta extends RouteMetaRaw {}
 }
 
 declare namespace Route {
   interface recordMainRaw {
-    meta?: {
-      auths?: {
-        name: string
-        value: string
-      }[]
-      auth?: string | string[]
-      title?: string | (() => string)
-      icon?: string | [string, string]
-      badge?:
-        boolean | (() => boolean)
-        | [
-          boolean | (() => boolean),
-          'default' | 'secondary' | 'destructive' | (() => 'default' | 'secondary' | 'destructive'),
-        ]
-      sort?: number
-    }
+    meta?: Pick<RouteMetaRaw, 'auths' | 'auth' | 'title' | 'icon' | 'badge' | 'sort'>
     children: RouteRecordRaw[]
   }
 }
@@ -1085,52 +1241,21 @@ declare namespace Menu {
   /** 原始 */
   interface recordRaw {
     path?: string
-    meta?: {
-      title?: string | (() => string)
-      icon?: string | [string, string]
-      expand?: boolean | [boolean, boolean]
-      auth?: string | string[]
-      menu?: boolean
-      badge?:
-        boolean | string | number | (() => boolean | string | number)
-        | [
-          boolean | string | number | (() => boolean | string | number),
-          'default' | 'secondary' | 'destructive' | (() => 'default' | 'secondary' | 'destructive'),
-        ]
-      newWindow?: boolean
-      link?: string
-      query?: Record<string, T>
-    }
+    meta?: Pick<RouteMetaRaw, 'auth' | 'title' | 'query' | 'icon' | 'menu' | 'expand' | 'badge' | 'newWindow' | 'link'>
     children?: recordRaw[]
   }
   /** 主导航 */
   interface recordMainRaw {
-    meta?: {
-      auth?: string | string[]
-      title?: string | (() => string)
-      icon?: string | [string, string]
-      badge?:
-        boolean | (() => boolean)
-        | [
-          boolean | (() => boolean),
-          'default' | 'secondary' | 'destructive' | (() => 'default' | 'secondary' | 'destructive'),
-        ]
-    }
+    meta?: Pick<RouteMetaRaw, 'auth' | 'title' | 'icon' | 'badge'>
     children: recordRaw[]
   }
 }
 
 declare namespace Tabbar {
-  interface recordRaw {
+  interface recordRaw extends Pick<RouteMetaRaw, 'title' | 'icon' | 'activeMenu' | 'tabPermanent' | 'tabMerge' | 'iframe'> {
     tabId: string
     fullPath: string
     routeName?: RouteRecordName | null
-    activeMenu?: string
-    title?: string | (() => string)
-    icon?: string | [string, string]
-    iframe?: string | boolean
-    tabPermanent?: boolean
-    tabMerge?: 'routeName' | 'activeMenu'
     name: string[]
     customTitleList: {
       fullPath: string

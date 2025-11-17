@@ -1,43 +1,36 @@
-# ShuYou-AI-Web
+# ShuYou-Web-Admin
 
+#### 介绍
+数游科技管理后台系统
 
-## 项目文档
-1. https://cn.vuejs.org/guide/introduction.html
-
-## install components
-```sh
-pnpm install element-plus
-pnpm install -D unplugin-vue-components unplugin-auto-import
-
-
+#### 软件架构
+```
+1.替换favicon.ico
+/public/favicon.ico
+2.替换logo.svg和login-banner.png
+/src/assets/images/logo.svg
+/src/assets/images/login-banner.png
+3.修改版权信息
+/src/settings
+copyright: {
+  enable: true,
+  dates: '2025-present',
+  company: '苏州数游科技有限公司',
+  website: 'https://www.shuyoutech.com/',
+  beian: '苏ICP备2025197988号',
+}
+4.分页字段重新定义
+/src/composables
 
 ```
 
 
+#### 安装教程
 
-## Project Setup
+1.  node版本>22
+2.  pnpm install
 
-```sh
-pnpm create vue@latest
+#### 运行方法
 
+1.  pnpm run dev
 
-pnpm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-pnpm dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-pnpm build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
-```
