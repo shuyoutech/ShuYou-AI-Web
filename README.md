@@ -1,4 +1,4 @@
-# ShuYou-Web-Admin
+# ShuYou-AI-Web
 
 #### 介绍
 数游AI平台为您聚合了包括OpenAI、Google、Anthropic、Grok、DeepSeek、通义千问在内的众多前沿大模型。无论您面临智能对话、AI绘画还是视频生成的复杂需求，我们都能为您提供全方位、持续进化的智能创作服务。
