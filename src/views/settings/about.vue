@@ -24,8 +24,8 @@ import Sidebar from './sidebar.vue'
               </div>
             </div>
             <div class="qrcode">
-              <img src="https://shuyoutech.com/preview/wechat_dm.jpg" alt="微信二维码" referrerpolicy="no-referrer" />
-              <div class="qrcode-tip">扫码添加微信</div>
+              <img src="https://shuyoutech.com/preview/wechat_group.png" alt="微信二维码" referrerpolicy="no-referrer" />
+              <div class="qrcode-tip">扫码进微信群</div>
             </div>
           </div>
 
@@ -42,6 +42,20 @@ import Sidebar from './sidebar.vue'
             <div class="info">
               <div class="label">联系QQ</div>
               <div class="value">1219191915</div>
+            </div>
+          </div>
+
+          <div class="card contact-miniprogram">
+            <div class="left">
+              <div class="card-icon"><FaIcon name="i-ant-design:wechat-filled"/></div>
+              <div class="info">
+                <div class="label">小程序</div>
+                <div class="value">数游AI</div>
+              </div>
+            </div>
+            <div class="qrcode">
+              <img src="https://shuyoutech.com/preview/wxamp-shouyou.jpg" alt="数游AI小程序二维码" referrerpolicy="no-referrer" />
+              <div class="qrcode-tip">扫码使用小程序</div>
             </div>
           </div>
         </div>
@@ -111,6 +125,23 @@ import Sidebar from './sidebar.vue'
   grid-template-columns: 1.2fr 1fr;
   grid-auto-rows: 220px;
   gap: 16px;
+}
+
+.contact-miniprogram {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contact-miniprogram .left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.contact-miniprogram .info {
+  text-align: left;
 }
 
 .card {

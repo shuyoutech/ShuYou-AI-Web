@@ -237,12 +237,17 @@ const getCurrentModelDesc = () => {
           <label class="form-label">
             文本内容 (必填)
           </label>
-          <textarea
-            v-model="formData.text"
-            class="prompt-input"
-            placeholder="请输入要转换为语音的文本内容"
-            rows="6"
-          />
+          <div class="prompt-input-wrapper">
+            <el-input
+              v-model="formData.text"
+              maxlength="1000"
+              placeholder="请输入要转换为语音的文本内容，例如：欢迎使用AI语音合成服务，我们将为您提供高质量的语音合成体验"
+              show-word-limit
+              type="textarea"
+              :rows=5
+              class="prompt-textarea"
+            />
+          </div>
         </div>
 
         <!-- 音色选择 -->
@@ -405,6 +410,59 @@ const getCurrentModelDesc = () => {
   font-size: 0.95rem;
   font-weight: 600;
   color: #495057;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* 创意描述输入框包装器 */
+.prompt-input-wrapper {
+  width: 100%;
+}
+
+/* 创意描述输入框样式优化 */
+.prompt-input-wrapper :deep(.el-textarea) {
+  width: 100%;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner) {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  font-family: inherit;
+  color: #2c3e50;
+  min-height: 120px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:hover) {
+  border-color: #ced4da;
+  background: white;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:focus) {
+  outline: none;
+  border-color: #8b5cf6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.prompt-input-wrapper :deep(.el-input__count) {
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.85rem;
+  bottom: 8px;
+  right: 12px;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner::placeholder) {
+  color: #adb5bd;
+  font-size: 0.9rem;
 }
 
 .prompt-input {

@@ -39,10 +39,28 @@ function getIconClass(path: string) {
       return `${baseClass} ${isActive ? 'text-indigo-600' : 'text-indigo-500 hover:text-indigo-600'}`
     case '/app':
       return `${baseClass} ${isActive ? 'text-orange-600' : 'text-orange-500 hover:text-orange-600'}`
+    case '/api':
+      return `${baseClass} ${isActive ? 'text-cyan-600' : 'text-cyan-500 hover:text-cyan-600'}`
+    case '/ai-tutorial':
+      return `${baseClass} ${isActive ? 'text-emerald-600' : 'text-emerald-500 hover:text-emerald-600'}`
     case '/settings':
       return `${baseClass} ${isActive ? 'text-gray-600' : 'text-gray-500 hover:text-gray-600'}`
     default:
       return `${baseClass} ${isActive ? 'text-gray-600' : 'text-gray-400 hover:text-gray-500'}`
+  }
+}
+
+// 处理菜单项选择
+function handleMenuSelect(index: string) {
+  const routeItem = routes.find(r => r.path === index)
+  if (!routeItem) return
+  
+  // 如果是外部链接，打开新标签页
+  if (routeItem.meta?.external && routeItem.meta?.link) {
+    window.open(routeItem.meta.link, '_blank')
+  } else {
+    // 对于普通路由，进行跳转
+    router.push(routeItem.path)
   }
 }
 </script>
@@ -50,13 +68,13 @@ function getIconClass(path: string) {
 <template>
   <div class="menu-wrap">
     <el-menu
-      router
       :default-active="activeRoute"
       class="el-menu-vertical-demo"
       :collapse="false"
       :collapse-transition="false"
       mode="horizontal"
       :ellipsis="false"
+      @select="handleMenuSelect"
     >
       <template v-for="routeItem in routes" :key="routeItem.name">
         <el-menu-item

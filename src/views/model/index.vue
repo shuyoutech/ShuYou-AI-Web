@@ -85,13 +85,13 @@ function formatRemark(model: ModelVo) {
   try {
     const price = JSON.parse(model.price || '{}')
     const currency = price.currency === 'CNY' ? '¥' : '$'
-    const contextWindow = model.contextWindowStr ? model.contextWindowStr : model.contextWindow
+    //const contextWindow = model.contextWindowStr ? model.contextWindowStr : model.contextWindow
     let arrList = []
     if (price.promptPrice) {
-      arrList.push(currency + price.promptPrice + '/M input tokens')
+      arrList.push('输入 ' + currency + price.promptPrice + '/M')
     }
     if (price.completionPrice) {
-      arrList.push(currency + price.completionPrice + '/M output tokens')
+      arrList.push('输出 ' +currency + price.completionPrice + '/M')
     }
     if (price.perPrice) {
       if (model.types?.includes('IG')) {
@@ -102,7 +102,7 @@ function formatRemark(model: ModelVo) {
       }
     }
     if (model.contextWindow && model.contextWindow > 0) {
-      arrList.push(contextWindow)
+      //arrList.push('上下文 ' +contextWindow)
     }
     return arrList.join(' | ')
   } catch (error) {
@@ -204,13 +204,18 @@ function copyModelName(modelName: string) {
                 </div>
               </div>
               <div class="model-title">
-                {{ model.alias }}
-                <FaIcon
-                  name="i-ri:file-copy-line"
-                  class="copy-name-icon"
-                  @click="copyModelName(model.name)"
-                  :title="`模型名称: ${model.name || model.alias} (点击复制)`"
-                />
+                <div class="model-alias-row">
+                  <span class="model-alias">{{ model.alias }}</span>
+                  <FaIcon
+                    name="i-ri:file-copy-line"
+                    class="copy-name-icon"
+                    @click="copyModelName(model.name)"
+                    :title="`模型名称: ${model.name || model.alias} (点击复制)`"
+                  />
+                </div>
+                <div v-if="model.name" class="model-name">
+                  {{ model.name }}
+                </div>
               </div>
               <div class="model-badges">
                 <span v-if="model.enableThinking" class="badge version-badge">思考</span>
@@ -438,6 +443,20 @@ function copyModelName(modelName: string) {
 
 .model-title {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.model-alias-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.model-alias {
   font-size: 0.95rem;
   font-weight: 600;
   color: #2c3e50;
@@ -445,9 +464,15 @@ function copyModelName(modelName: string) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+}
+
+.model-name {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .copy-name-icon {

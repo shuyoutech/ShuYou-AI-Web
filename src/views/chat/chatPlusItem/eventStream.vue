@@ -149,7 +149,7 @@ async function typeWriterEffect() {
 function processNewData(newData) {
   pendingContent = newData
   if (!typeInterval) {
-    typeInterval = setInterval(typeWriterEffect, 50) // 调整速度
+    typeInterval = setInterval(typeWriterEffect, 10) // 调整速度
   }
 }
 // 清除定时器

@@ -13,7 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const inputValue = ref('')
 const modelFunc = ref('chat')
-const title = ref('漫游全球AI大模型')
+const title = ref('今天有什么可以帮到你？')
 const funcList = ref([
   {name: 'AI翻译', icon: 'translate', path: '/chat/translation', color: '#8b5cf6'},
   {name: 'AI写作', icon: 'write', path: '/chat/writing', color: '#10b981'},
@@ -141,7 +141,7 @@ const initData = async () => {
 const initDisplay = () => {
   switch (route.path) {
     case '/chat/completions':
-      title.value = '漫游全球AI大模型'
+      title.value = '今天有什么可以帮到你？'
       showType.value = 'chat'
       showSkillTag.value = false
       modelFunc.value = 'chat'
@@ -168,7 +168,7 @@ const initDisplay = () => {
       modelFunc.value = 'coder'
       break
     default:
-      title.value = '漫游全球AI大模型'
+      title.value = '今天有什么可以帮到你？'
       showType.value = 'chat'
       showSkillTag.value = false
       break
@@ -910,6 +910,30 @@ function handleTemplateChange(_newSegments) {
         <span class="func-text">{{ item.name }}</span>
       </div>
     </div>
+    <!-- 温馨提示 -->
+    <div v-if="showType === 'chat'" class="tips-container">
+      <div class="tips-card">
+        <div class="tip-item">
+          <div class="tip-icon tip-icon-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <span class="tip-text">当您想查询最新股市、热点新闻等信息时，请开启 <strong>"联网搜索"</strong>，让我为您带回实时信息。</span>
+        </div>
+        <div class="tip-item">
+          <div class="tip-icon tip-icon-memory">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <span class="tip-text">如果您希望我们进行更长的深度讨论，请到 <strong>"模型配置"</strong> 调高 <strong>"最大消息数量"</strong>，这样我能记住更多之前的对话内容</span>
+        </div>
+      </div>
+    </div>
     <el-dialog
       v-model="showModelConfig"
       title=""
@@ -1482,6 +1506,71 @@ function handleTemplateChange(_newSegments) {
     }
   }
 
+  // 温馨提示样式
+  .tips-container {
+    margin-top: 16px;
+    padding: 0 8px;
+
+    .tips-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+
+      .tip-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #475569;
+
+        .tip-icon {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          border-radius: 6px;
+          padding: 2px;
+          transition: all 0.3s ease;
+          margin-top: 2px;
+
+          svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+          }
+
+          &.tip-icon-search {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            color: #0369a1;
+          }
+
+          &.tip-icon-memory {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #d97706;
+          }
+        }
+
+        .tip-text {
+          flex: 1;
+          word-break: break-word;
+          line-height: 1.6;
+
+          strong {
+            color: #667eea;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+
   // 响应式设计
   @media (max-width: 768px) {
     .more-func {
@@ -1507,6 +1596,33 @@ function handleTemplateChange(_newSegments) {
 
         .func-text {
           font-size: 13px;
+        }
+      }
+    }
+
+    .tips-container {
+      margin-top: 12px;
+      padding: 0 4px;
+
+      .tips-card {
+        padding: 10px 12px;
+        gap: 6px;
+
+        .tip-item {
+          font-size: 12px;
+          gap: 8px;
+
+          .tip-icon {
+            width: 18px;
+            height: 18px;
+            margin-top: 1px;
+
+            svg {
+              width: 14px;
+              height: 14px;
+              display: block;
+            }
+          }
         }
       }
     }
@@ -1539,6 +1655,34 @@ function handleTemplateChange(_newSegments) {
 
         &:hover {
           transform: translateY(-1px);
+        }
+      }
+    }
+
+    .tips-container {
+      margin-top: 12px;
+      padding: 0;
+
+      .tips-card {
+        padding: 10px 12px;
+        gap: 6px;
+
+        .tip-item {
+          font-size: 12px;
+          gap: 8px;
+          line-height: 1.5;
+
+          .tip-icon {
+            width: 18px;
+            height: 18px;
+            margin-top: 1px;
+
+            svg {
+              width: 14px;
+              height: 14px;
+              display: block;
+            }
+          }
         }
       }
     }

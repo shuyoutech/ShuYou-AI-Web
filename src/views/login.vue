@@ -72,6 +72,7 @@ async function onPhoneSubmit(e: Event) {
   }
 }
 
+const isCounting = ref(false)
 async function sendSms() {
   const phone = phoneForm.value.phone
   if (!phone) {
@@ -85,6 +86,7 @@ async function sendSms() {
   }
 
   try {
+    isCounting.value = true
     await authSendSms({
       mobile: phone,
       templateCode: 'SMS_491995068',
@@ -92,6 +94,7 @@ async function sendSms() {
     ElMessage.success('验证码已发送')
     startCountdown()
   } catch (error) {
+    isCounting.value = false
     ElMessage.error('发送验证码失败，请重试')
     console.error('Send SMS error:', error)
   }
@@ -125,14 +128,12 @@ async function getQrCode() {
 
 const countdown = ref(60)
 const timer = ref(null)
-const isCounting = ref(false)
 const buttonText = computed(() => {
   return isCounting.value ? `${countdown.value}s` : '获取验证码'
 })
 
 // 倒计时
 function startCountdown() {
-  isCounting.value = true
   countdown.value = 60
   timer.value = setInterval(() => {
     countdown.value--

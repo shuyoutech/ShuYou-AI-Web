@@ -5,6 +5,7 @@ import {authAuthorize, authSendSms} from "@/api/auth";
 import {memberBindMobileApi} from "@/api/member";
 import {payGetWalletApi} from "@/api/pay";
 import RechargeModal from '@/components/RechargeModal/index.vue'
+import {setCookie} from "@/utils/cookie.ts";
 
 const router = useRouter()
 
@@ -164,14 +165,22 @@ const submitMobileBinding = async () => {
 
   try {
     // 这里应该调用绑定手机的API
-    await memberBindMobileApi(mobileForm.value.mobile, mobileForm.value.code)
-    ElMessage.success('手机绑定成功！')
-
-    // 更新用户信息
-    await userStore.getMemberInfo()
-    closeMobileModal()
+    const res = await memberBindMobileApi(mobileForm.value.mobile, mobileForm.value.code)
+    if (res.code === 0) {
+      if (res.data && res.data.accessToken) {
+        // 更新用户信息
+        await userStore.updateAccessToken(res.data)
+      } else {
+        // 更新用户信息
+        await userStore.getMemberInfo()
+      }
+      ElMessage.success('手机绑定成功！')
+      closeMobileModal()
+    } else {
+      ElMessage.error('绑定失败，请重试')
+    }
   } catch (error) {
-    ElMessage.error('绑定失败，请重试')
+    ElMessage.error('绑定失败，请重试!')
   }
 }
 
@@ -326,9 +335,9 @@ const getUserPower = () => {
   <div v-if="showMobileModal" class="mobile-modal-overlay">
     <div class="mobile-modal" @click.stop>
       <!-- 关闭按钮 -->
-      <button class="modal-close-btn" @click="closeMobileModal">
-        <FaIcon name="i-mdi:close"/>
-      </button>
+      <!--  <button class="modal-close-btn" @click="closeMobileModal">
+              <FaIcon name="i-mdi:close"/>
+            </button>-->
 
       <!-- 标题 -->
       <h2 class="modal-title">手机快速绑定</h2>

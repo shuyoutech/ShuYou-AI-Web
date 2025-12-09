@@ -1,19 +1,22 @@
-import {authAccessToken, authLogout, authSmsLogin} from "@/api/auth";
-import {memberGetProfileApi} from "@/api/member";
-import type {MemberUserVo} from "@/api/member/types.ts";
+import { authAccessToken, authLogout, authSmsLogin } from '@/api/auth'
+import { memberGetProfileApi } from '@/api/member'
+import type { MemberUserVo } from '@/api/member/types.ts'
+import { getCookie, removeCookie, setCookie } from '@/utils/cookie'
+import type {AuthSmsLoginRes} from "@/api/auth/types.ts";
 
 export const useUserStore = defineStore(
   // 唯一ID
   'user',
   () => {
-    const account = ref(localStorage.getItem('account') ?? '')
-    const token = ref(localStorage.getItem('token') ?? '')
-    const avatar = ref(localStorage.getItem('avatar') ?? '')
-    const nickname = ref(localStorage.getItem('nickname') ?? '')
-    const userId = ref(localStorage.getItem('userId') ?? '')
-    const expireTime = ref(localStorage.getItem('expireTime') ?? '') // token有效期（秒）
-    const loginTime = ref(localStorage.getItem('loginTime') ?? '') // 登录时间戳（秒）
-    const userInfo = ref<MemberUserVo>(localStorage.getItem('userInfo') ? JSON.parse(<string>localStorage.getItem('userInfo')) : {})
+    // 所有用户信息从 cookie 中读取，实现子域名共享
+    const account = ref(getCookie('account') ?? '')
+    const token = ref(getCookie('token') ?? '')
+    const avatar = ref(getCookie('avatar') ?? '')
+    const nickname = ref(getCookie('nickname') ?? '')
+    const userId = ref(getCookie('userId') ?? '')
+    const expireTime = ref(getCookie('expireTime') ?? '') // token有效期（秒）
+    const loginTime = ref(getCookie('loginTime') ?? '') // 登录时间戳（秒）
+    const userInfo = ref<MemberUserVo>(getCookie('userInfo') ? JSON.parse(getCookie('userInfo')) : {})
     const showLoginModal = ref(false)
     const isLogin = computed(() => {
       return token.value !== ''
@@ -46,11 +49,13 @@ export const useUserStore = defineStore(
       }).then((res: any) => {
         if (res.code === 0) {
           const currentTime = Math.floor(Date.now() / 1000) // 当前时间戳（秒）
-          localStorage.setItem('token', res.data.accessToken)
-          localStorage.setItem('userId', res.data.userId)
-          localStorage.setItem('expireTime', res.data.expireTime)
-          localStorage.setItem('loginTime', currentTime.toString())
-          token.value = res.data.accessToken
+          // 所有信息存储到 cookie，实现子域名共享，同时更新 ref 确保响应式
+          const tokenValue = res.data.accessToken
+          setCookie('token', tokenValue)
+          setCookie('userId', res.data.userId)
+          setCookie('expireTime', res.data.expireTime)
+          setCookie('loginTime', currentTime.toString())
+          token.value = tokenValue // 更新 ref，触发响应式更新
           userId.value = res.data.userId
           expireTime.value = res.data.expireTime
           loginTime.value = currentTime.toString()
@@ -62,6 +67,23 @@ export const useUserStore = defineStore(
       })
     }
 
+    // 更新用户token相关信息
+    const updateAccessToken = (res: AuthSmsLoginRes) => {
+      const currentTime = Math.floor(Date.now() / 1000) // 当前时间戳（秒）
+      // 所有信息存储到 cookie，实现子域名共享，同时更新 ref 确保响应式
+      const tokenValue = res.accessToken
+      setCookie('token', tokenValue)
+      setCookie('userId', res.userId)
+      setCookie('expireTime', res.expireTime.toString())
+      setCookie('loginTime', currentTime.toString())
+      token.value = tokenValue // 更新 ref，触发响应式更新
+      userId.value = res.userId
+      expireTime.value = res.expireTime.toString()
+      loginTime.value = currentTime.toString()
+      showLoginModal.value = false
+      getMemberInfo()
+    }
+
     // 获取会员信息
     const getMemberInfo = () => {
       memberGetProfileApi().then((res: any) => {
@@ -69,9 +91,10 @@ export const useUserStore = defineStore(
           avatar.value = res.data.avatar
           nickname.value = res.data.nickname
           userInfo.value = res.data
-          localStorage.setItem('userInfo', JSON.stringify(res.data))
-          localStorage.setItem('avatar', avatar.value)
-          localStorage.setItem('nickname', nickname.value)
+          // 所有信息存储到 cookie，实现子域名共享
+          setCookie('userInfo', JSON.stringify(res.data))
+          setCookie('avatar', avatar.value)
+          setCookie('nickname', nickname.value)
         } else {
           requestLogout()
         }
@@ -83,13 +106,15 @@ export const useUserStore = defineStore(
       authSmsLogin({ mobile, code }).then((res: any) => {
         if (res.code === 0) {
           const currentTime = Math.floor(Date.now() / 1000) // 当前时间戳（秒）
-          localStorage.setItem('account', mobile)
-          localStorage.setItem('token', res.data.accessToken)
-          localStorage.setItem('userId', res.data.userId)
-          localStorage.setItem('expireTime', res.data.expireTime)
-          localStorage.setItem('loginTime', currentTime.toString())
+          // 所有信息存储到 cookie，实现子域名共享，同时更新 ref 确保响应式
+          const tokenValue = res.data.accessToken
+          setCookie('account', mobile)
+          setCookie('token', tokenValue)
+          setCookie('userId', res.data.userId)
+          setCookie('expireTime', res.data.expireTime)
+          setCookie('loginTime', currentTime.toString())
           account.value = mobile
-          token.value = res.data.accessToken
+          token.value = tokenValue // 更新 ref，触发响应式更新
           userId.value = res.data.userId
           expireTime.value = res.data.expireTime
           loginTime.value = currentTime.toString()
@@ -117,21 +142,24 @@ export const useUserStore = defineStore(
 
     // 登出后清除状态
     const requestLogout = () => {
-      localStorage.removeItem('account')
-      localStorage.removeItem('token')
-      localStorage.removeItem('userId')
-      localStorage.removeItem('expireTime')
-      localStorage.removeItem('loginTime')
-      localStorage.removeItem('userInfo')
-      localStorage.removeItem('nickname')
-      localStorage.removeItem('avatar')
-      token.value = ''
+      // 删除所有 cookie 中的用户信息
+      removeCookie('account')
+      removeCookie('token')
+      removeCookie('userId')
+      removeCookie('expireTime')
+      removeCookie('loginTime')
+      removeCookie('userInfo')
+      removeCookie('nickname')
+      removeCookie('avatar')
+      // 清空所有 ref，触发响应式更新
       account.value = ''
+      token.value = ''
       avatar.value = ''
       userId.value = ''
       nickname.value = ''
       expireTime.value = ''
       loginTime.value = ''
+      userInfo.value = {}
     }
 
     return {
@@ -148,6 +176,7 @@ export const useUserStore = defineStore(
       isTokenValid,
       showLoginModal,
       accessToken,
+      updateAccessToken,
       smsLogin,
       getMemberInfo,
       logout,

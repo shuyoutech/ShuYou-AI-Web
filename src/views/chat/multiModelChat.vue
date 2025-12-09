@@ -60,8 +60,23 @@ function toggleModelSelection(model: ModelVo) {
   if (existingIndex > -1) {
     selectedModels.value.splice(existingIndex, 1)
   } else {
+    // 检查是否已达到最大选择数量（5个）
+    if (selectedModels.value.length >= 5) {
+      ElMessage.warning('最多只能选择5个模型')
+      return
+    }
     selectedModels.value.push(model)
   }
+}
+
+// 检查模型是否可以被选择（未达到最大数量限制）
+function canSelectModel(model: ModelVo): boolean {
+  // 如果已经选择了该模型，可以取消选择
+  if (isModelSelected(model)) {
+    return true
+  }
+  // 如果未选择且已达到最大数量，则不能选择
+  return selectedModels.value.length < 5
 }
 
 function confirmModelSelection() {
@@ -390,7 +405,7 @@ watch(messageList, () => {
                   <div v-if="selectedModels.length > 0" class="selected-models">
                     <div class="selected-models-container">
                       <div class="selected-models-title">
-                        <span class="title-text">已选择 {{ selectedModels.length }} 个模型：</span>
+                        <span class="title-text">已选择 {{ selectedModels.length }} / 5 个模型：</span>
                       </div>
                       <div class="selected-models-list">
                         <div
@@ -623,7 +638,7 @@ watch(messageList, () => {
                       请先选择至少一个模型
                     </span>
                     <span v-else class="tip-info">
-                      已选择 {{ selectedModels.length }} 个模型
+                      已选择 {{ selectedModels.length }} / 5 个模型
                     </span>
                   </div>
                   <el-tooltip
@@ -685,8 +700,11 @@ watch(messageList, () => {
                     v-for="model in modelList"
                     :key="`${model.provider}-${model.name}`"
                     class="model-item"
-                    :class="{ selected: isModelSelected(model) }"
-                    @click="toggleModelSelection(model)"
+                    :class="{ 
+                      selected: isModelSelected(model),
+                      disabled: !canSelectModel(model)
+                    }"
+                    @click="canSelectModel(model) && toggleModelSelection(model)"
                 >
                   <img
                       :src="model.providerIcon"
@@ -700,7 +718,7 @@ watch(messageList, () => {
                     <div v-if="model.remark" class="model-description">{{ model.remark }}</div>
                   </div>
                   <div class="model-status">
-                    {{ isModelSelected(model) ? '已选择' : '未选择' }}
+                    {{ isModelSelected(model) ? '已选择' : (!canSelectModel(model) ? '已达上限' : '未选择') }}
                   </div>
                 </div>
               </div>
@@ -708,7 +726,7 @@ watch(messageList, () => {
               <!-- 操作按钮 -->
               <div class="selector-actions">
                 <div class="selected-info">
-                  已选择 {{ selectedModels.length }} 个模型
+                  已选择 {{ selectedModels.length }} / 5 个模型
                 </div>
                 <div class="action-buttons">
                   <el-button @click="showModelSelector = false">取消</el-button>
@@ -1784,6 +1802,25 @@ watch(messageList, () => {
           color: #007bff;
           font-weight: bold;
           font-size: 16px;
+        }
+      }
+
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f5f5f5;
+
+        &:hover {
+          background: #f5f5f5;
+          transform: none;
+        }
+
+        .model-name {
+          color: #999;
+        }
+
+        .model-status {
+          color: #f59e0b;
         }
       }
 

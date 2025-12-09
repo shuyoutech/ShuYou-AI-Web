@@ -178,18 +178,23 @@ const getCurrentModelDesc = () => {
           </div>
         </div>
         <div class="middle-box">
-          <!-- 创意描述 -->
-          <div class="form-section">
-            <label class="form-label">
-              问题描述 (必填)
-            </label>
-            <textarea
+        <!-- 创意描述 -->
+        <div class="form-section">
+          <label class="form-label">
+            问题描述 (必填)
+          </label>
+          <div class="prompt-input-wrapper">
+            <el-input
               v-model="formData.message"
-              class="prompt-input"
-              placeholder="请输入您想问的问题"
-              rows="8"
+              maxlength="1000"
+              placeholder="请输入您想问的问题，例如：这张图片中有什么？请详细描述图片的内容"
+              show-word-limit
+              type="textarea"
+              :rows=5
+              class="prompt-textarea"
             />
           </div>
+        </div>
 
           <!-- 参考图片上传 -->
           <div class="form-section">
@@ -407,6 +412,59 @@ const getCurrentModelDesc = () => {
   font-size: 0.95rem;
   font-weight: 600;
   color: #495057;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* 创意描述输入框包装器 */
+.prompt-input-wrapper {
+  width: 100%;
+}
+
+/* 创意描述输入框样式优化 */
+.prompt-input-wrapper :deep(.el-textarea) {
+  width: 100%;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner) {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  font-family: inherit;
+  color: #2c3e50;
+  min-height: 120px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:hover) {
+  border-color: #ced4da;
+  background: white;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:focus) {
+  outline: none;
+  border-color: #8b5cf6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.prompt-input-wrapper :deep(.el-input__count) {
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.85rem;
+  bottom: 8px;
+  right: 12px;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner::placeholder) {
+  color: #adb5bd;
+  font-size: 0.9rem;
 }
 
 .prompt-input {

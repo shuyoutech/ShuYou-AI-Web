@@ -1,6 +1,7 @@
 import type {AxiosResponse} from "axios"
 import type {MemberUserVo} from "@/api/member/types.ts"
 import api from "@/utils/axios.ts"
+import type {AuthSmsLoginRes} from "@/api/auth/types.ts";
 
 /**
  * 会员管理-获取个人信息
@@ -29,7 +30,7 @@ export function memberBindThirdPartyApi(code: string): Promise<AxiosResponse<boo
 /**
  * 会员管理-绑定手机号
  */
-export function memberBindMobileApi(mobile: string, code: string): Promise<AxiosResponse<boolean>> {
+export function memberBindMobileApi(mobile: string, code: string): Promise<AxiosResponse<AuthSmsLoginRes>> {
   return api({
     url: '/member/user/bind-mobile',
     method: 'post',

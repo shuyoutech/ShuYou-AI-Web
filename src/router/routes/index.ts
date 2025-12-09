@@ -318,6 +318,59 @@ const routes: any[] = [
     ],
   },
   {
+    path: '/api',
+    component: () => import('@/layouts/layout.vue'),
+    meta: {
+      title: 'API接口',
+      show: true,
+      icon: 'ri:code-s-slash-line',
+      external: true,
+      link: 'https://doc.shuyoutech.com/',
+    },
+  },
+  {
+    path: '/ai-tutorial',
+    component: () => import('@/layouts/layout.vue'),
+    meta: {
+      title: 'AI教程',
+      show: true,
+      icon: 'ri:book-open-line',
+    },
+    redirect: '/ai-tutorial/index',
+    children: [
+      {
+        path: 'index',
+        name: 'AiTutorialIndex',
+        component: () => import('@/views/ai-tutorial/index.vue'),
+        meta: {
+          title: 'AI教程',
+          show: false,
+        },
+      },
+    ],
+  },
+  {
+    path: '/faq',
+    component: () => import('@/layouts/layout.vue'),
+    meta: {
+      title: '常见问题',
+      show: true,
+      icon: 'ri:question-line',
+    },
+    redirect: '/faq/index',
+    children: [
+      {
+        path: 'index',
+        name: 'faqIndex',
+        component: () => import('@/views/faq/index.vue'),
+        meta: {
+          title: '常见问题',
+          show: false,
+        },
+      }
+    ],
+  },
+  {
     path: '/settings',
     component: () => import('@/layouts/layout.vue'),
     meta: {

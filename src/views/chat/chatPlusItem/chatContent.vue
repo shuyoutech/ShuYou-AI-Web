@@ -1,5 +1,5 @@
 <script setup>
-import {CopyDocument, EditPen, InfoFilled, Loading, Promotion, RefreshRight, VideoPause} from '@element-plus/icons-vue'
+import {Close, CopyDocument, EditPen, InfoFilled, Loading, Promotion, RefreshRight, VideoPause} from '@element-plus/icons-vue'
 import {fetchEventSource} from '@microsoft/fetch-event-source'
 import {ElMessage} from 'element-plus'
 import {debounce} from 'lodash-es'
@@ -19,6 +19,8 @@ const emits = defineEmits(['chatEnd'])
 const showDeepBtn = ref(true)
 const showNetBtn = ref(true)
 const showModelConfig = ref(false)
+// 控制提示框的显示
+const showTipBox = ref(true)
 
 const isDeepSeek = ref((localStorage.getItem('isDeepSeek') && localStorage.getItem('isDeepSeek') === 'true') || false)
 const isLinkNet = ref((localStorage.getItem('isLinkNet') && localStorage.getItem('isLinkNet') === 'true') || false)
@@ -143,6 +145,8 @@ function initChat() {
     getChatNewsList(chatId.value)
   } else {
     console.warn('initChat - chatId is undefined or empty')
+    // 新建对话时，设置为 0
+    modelConfig.maxMessageCount = 0
   }
 }
 
@@ -234,11 +238,22 @@ function getChatNewsList(chatId) {
       newsList.value.forEach((ele) => {
         messages.push({...ele})
       })
+      // 根据是否有历史消息自动设置 maxMessageCount
+      if (newsList.value.length > 0) {
+        modelConfig.maxMessageCount = 1
+      } else {
+        modelConfig.maxMessageCount = 0
+      }
+    } else {
+      // 如果没有历史消息，设置为 0
+      modelConfig.maxMessageCount = 0
     }
     isLoadingHistory.value = false
   }).catch((error) => {
     console.error('获取聊天历史失败:', error)
     isLoadingHistory.value = false
+    // 加载失败时，设置为 0
+    modelConfig.maxMessageCount = 0
   })
 }
 
@@ -478,8 +493,8 @@ function handleAnswer(msg, repeat = false, newsId) {
     const now = Date.now()
     const timeSinceLastUpdate = now - lastContentUpdate
 
-    // 如果30秒内没有内容更新，判断为连接超时
-    if (timeSinceLastUpdate > 30000) {
+    // 如果120秒内没有内容更新，判断为连接超时
+    if (timeSinceLastUpdate > 120000) {
       console.warn('SSE Connection timeout: no content update for', timeSinceLastUpdate, 'ms')
       ElMessage.warning('连接超时，请刷新页面重试')
       if (controller) {
@@ -804,6 +819,9 @@ function handleRefresh() {
 function noticeFinish() {
   isFinish.value = true
   emits('chatEnd', conversationId.value)
+  if (modelConfig.maxMessageCount === 0) {
+    modelConfig.maxMessageCount = 1
+  }
 }
 
 // 通知思考结束
@@ -979,6 +997,15 @@ function handleLinkNet() {
 
       <!-- 输入框和发送按钮 -->
       <div class="input-container">
+        <div v-show="showTipBox" class="tip-box">
+          <el-icon class="tip-icon">
+            <InfoFilled/>
+          </el-icon>
+          <span class="tip-text">模型配置: 通过系统提示词赋予其角色，通过最大消息记录控制对话记忆，并通过高级参数微调其创造力。</span>
+          <el-icon class="tip-close-btn" @click="showTipBox = false">
+            <Close/>
+          </el-icon>
+        </div>
         <el-input
           v-model="question"
           type="textarea"
@@ -1938,6 +1965,90 @@ function handleLinkNet() {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
+}
+
+.tip-box {
+  width: 100%;
+  max-width: 900px;
+  position: absolute;
+  top: -40px;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+
+  .tip-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #6366f1;
+    margin-top: 2px;
+    animation: pulse-icon 2s ease-in-out infinite;
+  }
+
+  .tip-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #475569;
+    flex: 1;
+    white-space: nowrap; // 文字不换行
+    overflow: hidden; // 隐藏超出部分
+    text-overflow: ellipsis; // 超出部分显示省略号
+  }
+
+  .tip-close-btn {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #64748b;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    margin-top: 2px;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
+    transform: translateY(-1px);
+
+    .tip-close-btn {
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes pulse-icon {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
 }
 
 .chat-input {
@@ -2176,6 +2287,30 @@ function handleLinkNet() {
     gap: 12px;
   }
 
+  .tip-box {
+    top: -28px;
+    padding: 6px 10px;
+    gap: 6px;
+
+    .tip-icon {
+      font-size: 12px;
+      margin-top: 1px;
+    }
+
+    .tip-text {
+      font-size: 11px;
+      line-height: 1.4;
+      white-space: nowrap; // 文字不换行
+      overflow: hidden; // 隐藏超出部分
+      text-overflow: ellipsis; // 超出部分显示省略号
+    }
+
+    .tip-close-btn {
+      font-size: 12px;
+      margin-top: 1px;
+    }
+  }
+
   .chat-input {
     :deep(.el-textarea__inner) {
       padding: 12px;
@@ -2233,6 +2368,31 @@ function handleLinkNet() {
   .input-container {
     padding: 12px;
     gap: 10px;
+  }
+
+  .tip-box {
+    top: -26px;
+    padding: 5px 8px;
+    gap: 5px;
+    border-radius: 6px;
+
+    .tip-icon {
+      font-size: 11px;
+      margin-top: 0;
+    }
+
+    .tip-text {
+      font-size: 10px;
+      line-height: 1.3;
+      white-space: nowrap; // 文字不换行
+      overflow: hidden; // 隐藏超出部分
+      text-overflow: ellipsis; // 超出部分显示省略号
+    }
+
+    .tip-close-btn {
+      font-size: 11px;
+      margin-top: 0;
+    }
   }
 
   .chat-input {

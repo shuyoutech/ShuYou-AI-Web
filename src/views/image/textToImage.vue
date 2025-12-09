@@ -3,13 +3,26 @@ import {ref, reactive} from 'vue'
 import Sidebar from "@/views/image/sidebar.vue"
 import {queryHotDataApi} from "@/api/api";
 import type {ModelParameters, ModelPrice, ModelVo} from "@/api/ai/model/types.ts";
-import {imageApi} from "@/api/ai/aigc";
-import type {ImageModelBo, ImageModelParam} from "@/api/ai/aigc/types.ts";
+import {imageApi, chatApi} from "@/api/ai/aigc";
+import type {ImageModelBo, ImageModelParam, ChatModelBo} from "@/api/ai/aigc/types.ts";
 
 // 响应式数据
 const isLoading = ref(false)
 const generatedImages = ref<string[]>([])
 const showModelDropdown = ref(false)
+const chatModelList = ref<ModelVo[]>([])
+const showOptimizeDialog = ref(false)
+const optimizeFormData = ref({
+  prompt: '',
+  outputEnglish: true
+})
+const isOptimizing = ref(false)
+const optimizedResult = ref<string>('')
+const optimizedPrompts = ref<{
+  enhanced_prompt?: string
+  chinese_prompt?: string
+}>({})
+const activeTab = ref('chinese')
 
 // 加载页面
 onMounted(() => {
@@ -19,6 +32,14 @@ onMounted(() => {
 // 初始化数据
 const initData = () => {
   loadImageModelList()
+  loadChatModelList()
+}
+
+// 加载聊天模型列表（用于优化提示词）
+const loadChatModelList = () => {
+  queryHotDataApi('ai_model_chat').then((res: any) => {
+    chatModelList.value = res.data || []
+  })
 }
 
 // 加载文生图模型列表
@@ -112,6 +133,148 @@ const downloadImage = (imageUrl: string, _index: number) => {
   window.open(imageUrl, '_blank')
 }
 
+// 打开优化提示词弹窗
+const openOptimizeDialog = () => {
+  optimizeFormData.value.prompt = formData.prompt
+  optimizedResult.value = ''
+  optimizedPrompts.value = {}
+  activeTab.value = 'chinese'
+  showOptimizeDialog.value = true
+}
+
+// 优化提示词
+const optimizePrompt = async () => {
+  if (!optimizeFormData.value.prompt.trim()) {
+    faToast.error('请输入创意描述')
+    return
+  }
+
+  isOptimizing.value = true
+  optimizedResult.value = ''
+
+  try {
+    let systemPrompt = `## Profile
+你是一位经验丰富、视野开阔的设计顾问和创意指导，对各领域的视觉美学和用户体验有深刻理解。同时，你也是一位顶级的 AI 文生图提示词专家 (Prompt Engineering Master)，能够敏锐洞察用户（即使是模糊或概念性的）设计意图，精通将多样化的用户需求（可能包含纯文本描述和参考图像）转译为具体、有效、能激发模型最佳表现的文生图提示词。
+
+## Core Mission
+- 你的核心任务是接收用户提供的任何类型的设计需求，基于对文生图模型能力边界的深刻理解进行处理。
+- 通过精准的分析（仔细理解用户提供的文本或图像）、必要的追问（如果需要），以及你对文生图提示词工程和模型能力的深刻理解，构建出能够引导 AI 模型准确生成符合用户核心意图和美学要求的图像的最终优化提示词。
+- 强调对用户完整意图的精准把握，理解文生图模型能力边界，并采用最有效的文生图提示词引导策略来处理精确性要求，最终激发模型潜力。
+
+## Input Handling
+- 接受多样化输入: 准备好处理纯文本描述/关键词列表/参考图像，或文本与图像的组合。
+- 图像分析: 如果用户提供参考图像，你需要根据用户需求，详尽分析其对应特征，判断哪些元素是用户真正想要参考的关键点，以及哪些可能需要调整或忽略。
+
+## Key Responsibilities
+1. 需求解析: 全面理解用户输入（文本和/或图像），洞察任何隐含要求，识别是否存在歧义、冲突。
+2. 意图澄清: 如果用户需求模糊、不完整或存在歧义（无论是文本还是图像参考），主动提出具体、有针对性的问题来澄清用户的真实意图，以确保完全把握用户的核心意图。
+3. 提示词构建与优化（特别的，明确知道文生图模型难以精确复现的要求，进行精确性引导: 对于需要相对精确的形状、布局或特定元素，优先使用更形象、具体的词汇或比喻来描述，而非依赖模型可能难以精确理解的纯粹几何术语或比例数字。）
+4. 输出交付:
+* 提供最终优化后的高质量中文提示词与英文提示词（两个版本）。
+* 简要说明关键提示词的构思逻辑或选择理由，帮助用户理解。
+* 若用户需求存在多种合理的诠释或实现路径，可提供1-2个具有显著差异的备选提示词供用户探索。
+
+## Guiding Principles
+* 精准性:力求每个词都服务于最终的视觉呈现。
+* 细节化:尽可能捕捉和转化用户需求中的细节。
+* 结构化:提示词应具有清晰的逻辑结构。
+* 用户中心:最终目标是如实反映用户的设计意图。
+
+## Interaction Style
+专业、耐心、细致、具有启发性。在必要时主动引导用户思考，以获取更清晰的需求。
+
+## 输出格式（严格JSON）
+{
+  "enhanced_prompt": "英文提示词版本",
+  "chinese_prompt": "中文提示词版本"
+}`
+
+    const message = optimizeFormData.value.prompt
+
+    const data: ChatModelBo = {
+      provider: 'deepseek',
+      model: 'deepseek-v3.2',
+      function: 'chat',
+      params: {
+        prompt: systemPrompt,
+        message: message,
+        stream: false,
+        enableThinking: false,
+        enableSearch: false
+      }
+    }
+
+    const response = await chatApi(data)
+
+    // 检查响应是否成功
+    if (response.code === 0 && response.data) {
+      const content = response.data.content || ''
+      optimizedResult.value = content
+
+      // 尝试解析JSON，提取英文和中文提示词
+      try {
+        let jsonStr = content.trim()
+        if (jsonStr.includes('```json')) {
+          jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+        } else if (jsonStr.includes('```')) {
+          jsonStr = jsonStr.replace(/```\n?/g, '').trim()
+        }
+
+        const parsed = JSON.parse(jsonStr)
+        optimizedPrompts.value = {
+          enhanced_prompt: parsed.enhanced_prompt || '',
+          chinese_prompt: parsed.chinese_prompt || ''
+        }
+        // 设置默认激活的标签页（优先中文）
+        activeTab.value = optimizedPrompts.value.chinese_prompt ? 'chinese' : 'english'
+      } catch (parseError) {
+        // 如果解析失败，清空提取的内容
+        optimizedPrompts.value = {}
+      }
+    } else {
+      faToast.error(response.msg || '优化失败，请重试')
+    }
+  } catch (error) {
+    console.error('优化提示词失败:', error)
+    faToast.error('优化失败，请检查网络连接或稍后重试')
+  } finally {
+    isOptimizing.value = false
+  }
+}
+
+// 复制文本到剪贴板
+const copyToClipboard = async (text: string) => {
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    faToast.success('已复制到剪贴板')
+  } catch (error) {
+    // 降级方案
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      faToast.success('已复制到剪贴板')
+    } catch (err) {
+      faToast.error('复制失败')
+    }
+    document.body.removeChild(textArea)
+  }
+}
+
+// 使用优化后的提示词
+const useOptimizedPrompt = (prompt: string) => {
+  if (prompt) {
+    formData.prompt = prompt
+    showOptimizeDialog.value = false
+    faToast.success('已应用到输入框')
+  }
+}
+
 // 模型选择相关函数
 const toggleModelDropdown = () => {
   showModelDropdown.value = !showModelDropdown.value
@@ -194,6 +357,10 @@ const calCredits = computed(() => {
         if (formData.size === condition.fieldValues) {
           return condition.credit * formData.n
         }
+      } else if (condition.fieldKeys === 'quality') {
+        if (formData.quality === condition.fieldValues) {
+          return condition.credit * formData.n
+        }
       }
     }
   }
@@ -255,12 +422,31 @@ const calCredits = computed(() => {
             <label class="form-label">
               创意描述 (必填)
             </label>
-            <textarea
-              v-model="formData.prompt"
-              class="prompt-input"
-              placeholder="请描述你想生成的图片内容"
-              rows="4"
-            />
+            <div class="prompt-input-wrapper">
+              <el-input
+                v-model="formData.prompt"
+                maxlength="1000"
+                placeholder="请描述你想生成的图片内容，例如：一只可爱的小猫坐在窗台上，阳光透过窗户洒在它身上，背景是温馨的客厅"
+                show-word-limit
+                type="textarea"
+                :rows=5
+                :autosize="{ minRows: 5, maxRows: 10 }"
+                class="prompt-textarea"
+              />
+              <div class="prompt-actions">
+                <button
+                  class="optimize-prompt-btn"
+                  @click="openOptimizeDialog"
+                >
+                  <img
+                    src="https://shuyoutech.com/preview/deepseek.png"
+                    alt="优化提示词"
+                    class="optimize-icon"
+                  />
+                  <span>优化提示词</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- 反向提示词 -->
@@ -273,6 +459,7 @@ const calCredits = computed(() => {
               class="prompt-input"
               placeholder="描述你不希望在画面中看到的内容"
               rows="3"
+              maxlength="1000"
             />
           </div>
 
@@ -470,6 +657,119 @@ const calCredits = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- 优化提示词弹窗 -->
+    <el-dialog
+      v-model="showOptimizeDialog"
+      title="优化提示词"
+      width="700px"
+      class="optimize-dialog"
+      :close-on-click-modal="false"
+    >
+      <div class="optimize-content">
+        <!-- 创意描述输入 -->
+        <label class="form-label">创意描述</label>
+        <el-input
+          v-model="optimizeFormData.prompt"
+          type="textarea"
+          maxlength="1000"
+          show-word-limit
+          :rows=5
+          :autosize="{ minRows: 5, maxRows: 10 }"
+          placeholder="请输入您想要优化的创意描述"
+          class="prompt-input"
+        />
+        <!-- 优化按钮 -->
+        <el-button
+          type="primary"
+          :loading="isOptimizing"
+          @click="optimizePrompt"
+          class="optimize-btn"
+        >
+          {{ isOptimizing ? '优化中...' : '优化提示词' }}
+        </el-button>
+
+        <!-- 优化结果展示 -->
+        <div v-if="optimizedResult && (optimizedPrompts.enhanced_prompt || optimizedPrompts.chinese_prompt)" class="result-container">
+          <el-tabs v-model="activeTab" class="prompt-tabs">
+            <!-- 中文提示词标签页 -->
+            <el-tab-pane
+              v-if="optimizedPrompts.chinese_prompt"
+              label="中文提示词"
+              name="chinese"
+            >
+              <template #label>
+                <span class="tab-label">
+                  <FaIcon name="i-ri:translate-2" class="tab-icon"/>
+                  中文提示词
+                </span>
+              </template>
+              <div class="tab-content">
+                <div class="tab-actions">
+                  <el-button
+                    size="small"
+                    @click="copyToClipboard(optimizedPrompts.chinese_prompt || '')"
+                  >
+                    <FaIcon name="i-ri:file-copy-line"/>
+                    复制
+                  </el-button>
+                  <el-button
+                    type="primary"
+                    size="small"
+                    @click="useOptimizedPrompt(optimizedPrompts.chinese_prompt || '')"
+                  >
+                    使用此提示词
+                  </el-button>
+                </div>
+                <div class="prompt-text-content">
+                  <div class="prompt-text">{{ optimizedPrompts.chinese_prompt }}</div>
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <!-- 英文提示词标签页 -->
+            <el-tab-pane
+              v-if="optimizedPrompts.enhanced_prompt"
+              label="英文提示词"
+              name="english"
+            >
+              <template #label>
+                <span class="tab-label">
+                  <FaIcon name="i-ri:global-line" class="tab-icon"/>
+                  英文提示词
+                </span>
+              </template>
+              <div class="tab-content">
+                <div class="tab-actions">
+                  <el-button
+                    size="small"
+                    @click="copyToClipboard(optimizedPrompts.enhanced_prompt || '')"
+                  >
+                    <FaIcon name="i-ri:file-copy-line"/>
+                    复制
+                  </el-button>
+                  <el-button
+                    type="primary"
+                    size="small"
+                    @click="useOptimizedPrompt(optimizedPrompts.enhanced_prompt || '')"
+                  >
+                    使用此提示词
+                  </el-button>
+                </div>
+                <div class="prompt-text-content">
+                  <div class="prompt-text">{{ optimizedPrompts.enhanced_prompt }}</div>
+                </div>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showOptimizeDialog = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -545,6 +845,406 @@ const calCredits = computed(() => {
   font-size: 0.95rem;
   font-weight: 600;
   color: #495057;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* 创意描述输入框包装器 */
+.prompt-input-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+/* 创意描述输入框样式优化 */
+.prompt-input-wrapper :deep(.el-textarea) {
+  width: 100%;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner) {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  font-family: inherit;
+  color: #2c3e50;
+  min-height: 120px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:hover) {
+  border-color: #ced4da;
+  background: white;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:focus) {
+  outline: none;
+  border-color: #8b5cf6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.prompt-input-wrapper :deep(.el-input__count) {
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.85rem;
+  bottom: 8px;
+  right: 12px;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner::placeholder) {
+  color: #adb5bd;
+  font-size: 0.9rem;
+}
+
+/* 优化提示词按钮样式 */
+.prompt-actions {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 12px;
+}
+
+.optimize-prompt-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  color: #2c3e50;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: 2px solid #dc3545;
+  outline-offset: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.optimize-prompt-btn:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #8b5cf6;
+  outline-color: #dc3545;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.optimize-prompt-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.optimize-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.loading-spinner-small {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(44, 62, 80, 0.3);
+  border-top: 2px solid #2c3e50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* 优化提示词弹窗样式 */
+.optimize-dialog :deep(.el-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.optimize-dialog :deep(.el-dialog__header) {
+  padding: 16px 20px 12px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  margin: 0;
+}
+
+.optimize-dialog :deep(.el-dialog__title) {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.optimize-dialog :deep(.el-dialog__headerbtn) {
+  top: 14px;
+  right: 16px;
+}
+
+.optimize-dialog :deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+  font-size: 18px;
+}
+
+.optimize-dialog :deep(.el-dialog__headerbtn:hover .el-dialog__close) {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.optimize-dialog :deep(.el-dialog__body) {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: #f8f9fa;
+}
+
+.optimize-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.optimize-content .form-section {
+  margin-bottom: 0;
+  background: white;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e9ecef;
+}
+
+.optimize-content .form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  display: block;
+  position: relative;
+  padding-left: 8px;
+}
+
+.optimize-content > .form-label {
+  margin-bottom: 8px;
+}
+
+.optimize-content .form-label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border-radius: 2px;
+}
+
+.optimize-content .prompt-input {
+  width: 100%;
+}
+
+.optimize-content .prompt-input :deep(.el-textarea__inner) {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  border: none;
+  border-radius: 0;
+  padding: 10px 0;
+  transition: all 0.3s ease;
+  background: transparent;
+  min-height: 80px;
+  box-shadow: none;
+}
+
+.optimize-content .prompt-input :deep(.el-textarea__inner:hover) {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.optimize-content .prompt-input :deep(.el-textarea__inner:focus) {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.switch-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.switch-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.switch-label::before {
+  content: '🌐';
+  font-size: 1rem;
+}
+
+.optimize-dialog :deep(.el-switch) {
+  --el-switch-on-color: #8b5cf6;
+}
+
+.optimize-dialog :deep(.el-switch__label) {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.optimize-btn {
+  width: auto;
+  min-width: 140px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+  align-self: center;
+  margin: 0 auto;
+}
+
+.optimize-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.optimize-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.result-container {
+  margin-top: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prompt-tabs {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e9ecef;
+}
+
+.prompt-tabs :deep(.el-tabs__header) {
+  margin-bottom: 16px;
+}
+
+.prompt-tabs :deep(.el-tabs__nav-wrap::after) {
+  background-color: #e9ecef;
+}
+
+.prompt-tabs :deep(.el-tabs__item) {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6c757d;
+  padding: 0 20px;
+  height: 40px;
+  line-height: 40px;
+}
+
+.prompt-tabs :deep(.el-tabs__item.is-active) {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.prompt-tabs :deep(.el-tabs__active-bar) {
+  background-color: #8b5cf6;
+}
+
+.prompt-tabs :deep(.el-tabs__item:hover) {
+  color: #8b5cf6;
+}
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tab-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.tab-actions :deep(.el-button) {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+.tab-actions :deep(.el-button--primary) {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border: none;
+}
+
+.prompt-text-content {
+  padding: 14px;
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+  border-radius: 8px;
+  border: 1px solid #f1f3f5;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.prompt-text {
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #2c3e50;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.optimize-dialog :deep(.el-dialog__footer) {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.optimize-dialog :deep(.dialog-footer .el-button) {
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .prompt-input {

@@ -14,3 +14,17 @@ export function queryHotDataApi<T>(type: string): Promise<AxiosResponse<T[]>> {
     method: 'post',
   })
 }
+
+/**
+ * 建议接口
+ */
+export function suggestApi(content: string) {
+  return api({
+    url: '/api/suggest',
+    method: 'post',
+    data: {
+      content
+    },
+  })
+}
+

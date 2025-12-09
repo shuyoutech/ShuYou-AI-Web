@@ -101,7 +101,7 @@ const generateImages = async () => {
         generatedImages.value = res.data
         faToast.success(`成功生成${generatedImages.value.length}张图片`)
       } else {
-        faToast.error('生成失败，请重试')
+        faToast.error(res.msg || '生成失败，请重试')
       }
       isLoading.value = false
     })
@@ -134,6 +134,9 @@ const selectModel = (model: ModelVo) => {
     formData.size = sizeOptions.value[0]
   }
   qualityOptions.value = modelParams.value.qualities || []
+  if (qualityOptions.value.length > 0) {
+    formData.quality = qualityOptions.value[0]
+  }
   imageCountOptions.value = []
   for (let i = 1; i <= (modelParams.value.maxNum || 1); i++) {
     imageCountOptions.value.push({label: i + "张", value: i + '', sort: i})
@@ -197,6 +200,10 @@ const calCredits = computed(() => {
         if (formData.size === condition.fieldValues) {
           return condition.credit * formData.n
         }
+      } else if (condition.fieldKeys === 'quality') {
+        if (formData.quality === condition.fieldValues) {
+          return condition.credit * formData.n
+        }
       }
     }
   }
@@ -258,12 +265,17 @@ const calCredits = computed(() => {
             <label class="form-label">
               创意描述 (必填)
             </label>
-            <textarea
-              v-model="formData.prompt"
-              class="prompt-input"
-              placeholder="请描述你想生成的图片内容"
-              rows="4"
-            />
+            <div class="prompt-input-wrapper">
+              <el-input
+                v-model="formData.prompt"
+                maxlength="1000"
+                placeholder="请描述你想生成的图片内容，例如：一只可爱的小猫坐在窗台上，阳光透过窗户洒在它身上，背景是温馨的客厅"
+                show-word-limit
+                type="textarea"
+                :rows=5
+                class="prompt-textarea"
+              />
+            </div>
           </div>
 
           <!-- 参考图片上传 -->
@@ -348,7 +360,7 @@ const calCredits = computed(() => {
                   </div>
                 </div>
 
-                <div v-show="modelParams.supports?.includes('quality')" class="quality-selector">
+                <div v-show="modelParams.qualities" class="quality-selector">
                   <div class="quality-header">
                     <span class="quality-title">质量</span>
                   </div>
@@ -368,7 +380,7 @@ const calCredits = computed(() => {
             </div>
 
             <!-- 第三行：随机种子 -->
-            <div v-show="modelParams.supports?.includes('seed')" class="setting-row setting-row-seed">
+            <div v-show="modelParams.maxSeed" class="setting-row setting-row-seed">
               <div class="seed-selector">
                 <div class="seed-header">
                   <span class="seed-title">随机种子数</span>
@@ -565,6 +577,59 @@ const calCredits = computed(() => {
   font-size: 0.95rem;
   font-weight: 600;
   color: #495057;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* 创意描述输入框包装器 */
+.prompt-input-wrapper {
+  width: 100%;
+}
+
+/* 创意描述输入框样式优化 */
+.prompt-input-wrapper :deep(.el-textarea) {
+  width: 100%;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner) {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  font-family: inherit;
+  color: #2c3e50;
+  min-height: 120px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:hover) {
+  border-color: #ced4da;
+  background: white;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner:focus) {
+  outline: none;
+  border-color: #8b5cf6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.prompt-input-wrapper :deep(.el-input__count) {
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.85rem;
+  bottom: 8px;
+  right: 12px;
+}
+
+.prompt-input-wrapper :deep(.el-textarea__inner::placeholder) {
+  color: #adb5bd;
+  font-size: 0.9rem;
 }
 
 .prompt-input {

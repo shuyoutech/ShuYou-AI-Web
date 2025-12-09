@@ -29,6 +29,9 @@ const pageSize = ref(10)
 const loading = ref(false)
 const finished = ref(false)
 
+// 对话查询
+const userStore = useUserStore()
+
 // 生命周期
 onMounted(() => {
   if (route.query.id && route.query.id.startsWith('local_')) {
@@ -38,6 +41,22 @@ onMounted(() => {
     }
   }
   getChatList()
+})
+
+// 监听登录状态变化
+watch(() => userStore.isLogin, (newVal, oldVal) => {
+  // 当用户从未登录变为已登录时，调用 getChatList
+  if (newVal && !oldVal) {
+    pageNum.value = 1
+    finished.value = false
+    getChatList()
+  }
+  // 当用户退出登录时，清空历史对话
+  if (!newVal && oldVal) {
+    chatList.value = []
+    pageNum.value = 1
+    finished.value = false
+  }
 })
 
 // 监听路由变化
@@ -61,9 +80,6 @@ watch(() => route.query.id, (newVal, oldVal) => {
     addNewChatTab()
   }
 })
-
-// 对话查询
-const userStore = useUserStore()
 
 function getChatList() {
   if (!userStore.isLogin) {
@@ -292,14 +308,14 @@ function clearAllChats() {
         finished.value = false
         chatList.value = []
         ElMessage.success('清除成功')
-        
+
         // 如果当前正在查看某个对话，跳转到首页
         if (route.query.id && !route.query.id.startsWith('local_')) {
           router.replace({
             name: 'ChatCompletions',
           })
         }
-        
+
         // 重新加载列表（会显示空状态）
         getChatList()
       } else {
@@ -343,10 +359,10 @@ defineExpose({
         历史对话
       </div>
       <div class="chat-history-actions">
-        <el-button 
-          type="danger" 
-          size="small" 
-          text 
+        <el-button
+          type="danger"
+          size="small"
+          text
           @click="clearAllChats"
           class="clear-all-btn"
         >
@@ -404,7 +420,7 @@ defineExpose({
 
 <style scoped lang="scss">
 .media-page {
-  padding: 16px 16px 0 16px;
+  padding: 10px 16px 0 16px;
 
   .newChat {
     width: 100%;
@@ -442,26 +458,26 @@ defineExpose({
       gap: 4px;
       color: #8a939d;
       background: transparent;
-      
+
       .clear-icon {
         font-size: 14px;
         transition: all 0.3s ease;
       }
-      
+
       span {
         font-weight: 500;
         transition: all 0.3s ease;
       }
-      
+
       &:hover {
         color: #f56c6c;
         background: rgba(245, 108, 108, 0.08);
-        
+
         .clear-icon {
           transform: scale(1.1);
         }
       }
-      
+
       &:active {
         transform: scale(0.95);
         background: rgba(245, 108, 108, 0.15);

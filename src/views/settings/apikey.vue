@@ -434,6 +434,7 @@ const handleSubmit = async () => {
       formData.id = currentId.value
       response = await apiKeyUpdateApi(formData)
     } else {
+      formData.id = ''
       response = await apiKeySaveApi(formData)
     }
 
@@ -540,7 +541,7 @@ onMounted(() => {
       <div class="content-section">
       <div class="content-header">
         <h2 class="page-title">API Key管理</h2>
-        <p class="page-subtitle">管理您的API密钥配置</p>
+        <p class="page-subtitle">温馨提示：配置第三方API密钥，将消耗对应平台的API额度，不会消耗平台算力</p>
       </div>
 
       <!-- 搜索栏 -->

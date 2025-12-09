@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { Close } from '@element-plus/icons-vue'
 import { onMounted, ref, watch } from 'vue'
-import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 import ChatMenu from './chatMenu.vue'
 import ChatIndex from '@/views/chat/chatPlusItem/chat.vue'
 import ChatContent from './chatPlusItem/chatContent.vue'
@@ -10,6 +11,34 @@ const showContent = ref(false)
 const currentChatObj = ref({})
 const route = useRoute()
 const router = useRouter()
+
+// 控制小程序推广图片的显示
+const showPromotion = ref(true)
+
+onMounted(() => {
+  // 检查是否已关闭推广图片
+  const promotionClosed = localStorage.getItem('miniprogram_promotion_closed')
+  if (promotionClosed === 'true') {
+    showPromotion.value = false
+  }
+
+  if (route.query.id && route.query.id.startsWith('local_')) {
+    const localChatObj = localStorage.getItem('local_currentChatObj')
+    if (localChatObj) {
+      currentChatObj.value = JSON.parse(localChatObj)
+      showContent.value = true
+    }
+  }
+  if (route.query.id && !route.query.id.startsWith('local_')) {
+    showContent.value = true
+  }
+})
+
+// 关闭推广图片
+function closePromotion() {
+  showPromotion.value = false
+  localStorage.setItem('miniprogram_promotion_closed', 'true')
+}
 
 onMounted(() => {
   if (route.query.id && route.query.id.startsWith('local_')) {
@@ -84,6 +113,16 @@ function handleChatEnd(conversationId: string) {
         <ChatContent v-else :chat-obj="currentChatObj" @chat-end="handleChatEnd" />
       </el-main>
     </el-container>
+    <!-- 小程序推广图片 -->
+    <div v-show="showPromotion" class="miniprogram-promotion">
+      <el-icon class="close-btn" @click="closePromotion">
+        <Close />
+      </el-icon>
+      <div class="promotion-title">
+        <div class="title-text">数游AI</div>
+      </div>
+      <img src="https://www.shuyoutech.com/preview/wxamp-shouyou.jpg" alt="数游AI小程序" class="promotion-image" />
+    </div>
   </div>
 </template>
 
@@ -120,6 +159,72 @@ function handleChatEnd(conversationId: string) {
   }
  }
 
+// 小程序推广图片样式
+.miniprogram-promotion {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  max-width: 140px;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.7);
+      transform: scale(1.1);
+    }
+  }
+
+  .promotion-title {
+    width: 100%;
+    margin-bottom: 10px;
+    text-align: center;
+
+    .title-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .promotion-image {
+    width: 120px;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+  }
+}
+
 // 响应式设计
 @media (max-width: 768px) {
   .chat-page {
@@ -137,6 +242,33 @@ function handleChatEnd(conversationId: string) {
 
   .chat-main {
     margin-left: 0;
+  }
+
+  .miniprogram-promotion {
+    bottom: 16px;
+    right: 16px;
+    padding: 10px;
+    max-width: 120px;
+
+    .close-btn {
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      top: 3px;
+      right: 3px;
+    }
+
+    .promotion-title {
+      margin-bottom: 8px;
+
+      .title-text {
+        font-size: 12px;
+      }
+    }
+
+    .promotion-image {
+      width: 100px;
+    }
   }
 }
 
@@ -165,6 +297,33 @@ function handleChatEnd(conversationId: string) {
           font-size: 10px;
         }
       }
+    }
+  }
+
+  .miniprogram-promotion {
+    bottom: 12px;
+    right: 12px;
+    padding: 8px;
+    max-width: 100px;
+
+    .close-btn {
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      top: 2px;
+      right: 2px;
+    }
+
+    .promotion-title {
+      margin-bottom: 6px;
+
+      .title-text {
+        font-size: 11px;
+      }
+    }
+
+    .promotion-image {
+      width: 84px;
     }
   }
 }

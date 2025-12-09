@@ -342,11 +342,11 @@ const updateChartData = () => {
                     <div class="tokens-container">
                       <div class="token-item">
                         <span class="token-label">Input:</span>
-                        <span class="token-value input-tokens">{{ row.promptTokens || 0 }}</span>
+                        <span class="token-value input-tokens">{{ row.inputTokens || 0 }}</span>
                       </div>
                       <div class="token-item">
                         <span class="token-label">Output:</span>
-                        <span class="token-value output-tokens">{{ row.completionTokens || 0 }}</span>
+                        <span class="token-value output-tokens">{{ row.outputTokens || 0 }}</span>
                       </div>
                     </div>
                   </template>

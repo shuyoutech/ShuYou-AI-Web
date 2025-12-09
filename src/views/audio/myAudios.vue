@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import Sidebar from '@/views/audio/sidebar.vue'
 import { audioMessagePageApi } from '@/api/ai/aigc'
 import type { AudioMessageVo } from '@/api/ai/aigc/types'
@@ -7,32 +7,29 @@ import type { AudioMessageVo } from '@/api/ai/aigc/types'
 // 音频列表数据
 const audioList = ref<AudioMessageVo[]>([])
 const loading = ref(false)
-const total = ref(0)
 
-// 分页参数
-const pagination = reactive({
-  pageNum: 1,
-  pageSize: 12,
-  total: 0
-})
+// 使用 composable 管理分页
+const { pagination, onSizeChange, onCurrentChange } = usePagination()
+pagination.value.pageSize = 10
+pagination.value.sizes = [10, 20, 30, 50]
+pagination.value.layout = 'total, sizes, prev, pager, next, jumper'
 
 // 加载音频列表
 const loadAudioList = async () => {
   loading.value = true
   try {
     const query = {
-      pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize,
+      pageNum: pagination.value.pageNum,
+      pageSize: pagination.value.pageSize,
       sort: 'requestTime',
       order: 'desc',
       query: {}
     }
-    
+
     const response: any = await audioMessagePageApi(query)
     if (response.code === 0) {
       audioList.value = response.data.rows || []
-      pagination.total = response.data.total || 0
-      total.value = response.data.total || 0
+      pagination.value.total = response.data.total || 0
     } else {
       faToast.error(response.msg || '加载音频列表失败')
     }
@@ -45,15 +42,14 @@ const loadAudioList = async () => {
 }
 
 // 分页处理
-const handleSizeChange = (size: number) => {
-  pagination.pageSize = size
-  pagination.pageNum = 1
-  loadAudioList()
+const handleSizeChange = async (size: number) => {
+  await onSizeChange(size)
+  await loadAudioList()
 }
 
-const handleCurrentChange = (page: number) => {
-  pagination.pageNum = page
-  loadAudioList()
+const handleCurrentChange = async (page: number) => {
+  await onCurrentChange(page)
+  await loadAudioList()
 }
 
 // 格式化时间
@@ -182,13 +178,13 @@ onMounted(() => {
       </div>
 
       <!-- 分页 -->
-      <div v-if="total > 0" class="pagination-container">
+      <div v-show="pagination.total > 0" class="pagination-container">
         <el-pagination
           v-model:current-page="pagination.pageNum"
           v-model:page-size="pagination.pageSize"
-          :page-sizes="[12, 24, 48, 96]"
-          :total="total"
-          layout="total, sizes, prev, pager, next, jumper"
+          :page-sizes="pagination.sizes"
+          :total="Number(pagination.total)"
+          :layout="pagination.layout"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
@@ -284,9 +280,9 @@ onMounted(() => {
 /* 音频网格 */
 .audio-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  margin-bottom: 0;
 }
 
 /* 音频卡片 */
@@ -409,16 +405,30 @@ onMounted(() => {
 .pagination-container {
   display: flex;
   justify-content: center;
-  padding: 24px 0;
-  border-top: 1px solid #e9ecef;
-  margin-top: 32px;
+  align-items: center;
+  padding: 32px 0;
+  border-top: 2px solid #e9ecef;
+  margin-top: 0;
+  background: #fff;
+  min-height: 80px;
+
+  :deep(.el-pagination) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 /* 响应式设计 */
+@media (max-width: 1600px) {
+  .audio-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 @media (max-width: 1200px) {
   .audio-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
